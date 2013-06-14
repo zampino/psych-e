@@ -3,30 +3,52 @@ require 'ostruct'
 
 module Psych::E
   class Configuration < OpenStruct
-
     include Singleton
 
-    # def self.defaults
-    #   @defaults ||= new
-    # end
+    DEFAULTS = {
+      emit: :ruby,
+      root: Dir.pwd
+    }
 
-    def self.merge local_options
-      instance.to_h.merge local_options
+    def self.allowed_keys
+      proc { |key, _|
+        [:emit, :mount, :root, :paranoid].include?(key)
+      }
     end
 
     def initialize
-      super emit: :yaml
+      super(DEFAULTS)
     end
 
-    def to_h
-      super
-    rescue MethodMissing
-      @table
+    # flavored options
+
+    # allows a friendlier mount instruction interface
+
+    def mount map=nil
+      return super() unless map
+      self.mount= map
     end
 
-    def emit type
-      send(:"emit=", type) 
+    def root
+      Pathname.new super
     end
+    
+    def self.update_with local_options
+      defaults = instance.to_h.keep_if &allowed_keys
+      options = defaults.merge local_options
+      SessionOptions.new(options)
+    end
+  end
 
+  class SessionOptions < OpenStruct
+
+    # @return (Symbol) :to_ruby, :to_yaml, :to_json
+    def emit
+      {
+        ruby: :to_ruby,
+        yaml: :to_yaml,
+        json: :to_json,
+      }[super]
+    end
   end
 end

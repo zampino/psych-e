@@ -1,52 +1,76 @@
 require 'spec_helper'
 
 describe Psych::E do
-
   it { should respond_to :resolve }
   it { should respond_to :configure }
+  it { should respond_to :load }
+  it { should respond_to :load_file }
 
-  specify {
-    subject.resolve("/some/path/to/yaml#and/some/1/fragment", emit: :json, foo: "bar").should be_true
-  }
-
-  describe "::resolve" do
-    
-    context "method call chain" do
-      let(:fake_supervisor) {
-        stub(:on_tasks_completed)
-      }
-      
-      specify {
-        Psych::E::Configuration.should_receive(:merge).with({emit: :ruby}).and_call_original
-        Psych::E::Supervisor.should_receive(:new).with("/bla/bla/", {emit: :ruby}).and_return(fake_supervisor)
-
-        Psych::E::Resolution.should_receive(:new).and_call_original
-
-
-        subject.resolve("/bla/bla/", emit: :ruby)
-      }
-
+  describe "::load" do
+    after { subject.load 'yaml', foo: "bar", ban: "zan" }
+    specify "method call" do
+      expect(subject).to receive(:resolve).
+        with(".", body: 'yaml', emit: :ruby, foo: "bar", ban: "zan")
     end
-
-
   end
 
+  describe "::load_file" do
+    after { subject.load_file "yaml", foo: "bar", ban: "zan" }
+    specify "method call" do
+      expect(subject).to receive(:open).with('yaml').
+        and_return double('io', read: 'yaml')
+      expect(subject).to receive(:resolve).
+        with(".", body: 'yaml', emit: :ruby, foo: "bar", ban: "zan")
+    end
+  end
 
+  describe "::resolve" do
+    let(:fake_session) {
+      fake_session = double()
+      allow(fake_session).to receive(:on_tasks_completed).and_yield fake_session
+    }
+
+    let(:fake_home) { double("home") }
+    let(:fake_resolution) { double(fetch_home: fake_home) }
+    
+    specify "meethod call chain" do
+      expect(Psych::E::Configuration).to receive(:update_with).
+        with(some: "option").and_return({emit: :format})
+
+      expect(Psych::E::Supervisor).to receive(:new).
+        with("uri", {emit: :format}).and_return(fake_session)
+
+      expect(Psych::E::Resolution).to receive(:new).
+        with('uri', fake_session, body: 'body').and_return(fake_resolution)
+
+      expect(fake_home).to receive(:format).and_return :result
+      expect(subject.resolve("uri", body: "body", some: "option")).to equal :result
+    end
+  end
 
   describe "::configure" do
-    specify "how the configuration should look like now" do
-      Psych::E::Configuration.should_receive(:instance).twice.and_call_original
+    let(:config_instance) { double("config instance") }
+    specify "method call" do
+      expect(Psych::E::Configuration).to receive(:instance).
+        and_return config_instance
+
+      expect(config_instance).to receive(:this).with(:with_that)
 
       Psych::E.configure do |config|
-        config.emit :json
-        config.environment_base = "public/schemas"
+        config.this :with_that
       end
+    end
+  end
 
-      Psych::E::Configuration.instance.to_h.should == {
-        emit: :json,
-        environment_base: "public/schemas"
-      }
-      
+  describe "example of resolutions" do
+    before {
+      Psych::E.configure do |c|
+        c.root= FIXTURES_ROOT
+      end
+    }
+
+    example "of resolution" do
+      expect(subject.load_file("/mowgli/caz.yml")).to be_true
     end
   end
 end

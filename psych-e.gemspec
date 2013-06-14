@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = Psych::E::VERSION
   spec.authors       = ["Andrea Amantini"]
   spec.email         = ["lo.zampino@gmail.com"]
-  spec.description   = %q{A Ruby asynchronous Yaml Environment Resolver}
-  spec.summary       = %q{Ascher uses Celluloid to asynchronously merge Psych parse trees retrieved from the web or filesystem environment}
+  spec.description   = %q{The missing _E_ nvironment in Psych}
+  spec.summary       = %q{Psyc::E uses Celluloid to asynchronously merge Psych parse trees retrieved from a Rack, Web or filesystem environment}
   spec.homepage      = "https://github.com/zampino/psych-e"
   spec.license       = "MIT"
 
@@ -19,8 +19,9 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_runtime_dependency "celluloid"
+  spec.add_runtime_dependency "rack"
 
-  spec.add_development_dependency "rspec"		      
-  spec.add_development_dependency "bundler", "~> 1.3"
+  spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"
+  spec.add_development_dependency "yard"
 end

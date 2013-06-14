@@ -1,0 +1,5 @@
+what: a
+beautiful:
+  - day
+  - to
+  - !ref code

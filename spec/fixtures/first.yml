@@ -1,0 +1,6 @@
+wow:
+  what: a
+  nice:
+    - res
+    - o
+    - !ref lution
