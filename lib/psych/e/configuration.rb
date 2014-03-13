@@ -5,15 +5,23 @@ module Psych::E
   class Configuration < OpenStruct
     include Singleton
 
+    ALLOWED_OPTIONS = [:emit, :mount, :root, :paranoid]
+
     DEFAULTS = {
       emit: :ruby,
       root: Dir.pwd
     }
 
-    def self.allowed_keys
+    def self.allowed_keys?
       proc { |key, _|
-        [:emit, :mount, :root, :paranoid].include?(key)
+        ALLOWED_OPTIONS.include?(key)
       }
+    end
+
+    def self.update_with local_options
+      defaults = instance.to_h.keep_if &allowed_keys?
+      options = defaults.merge local_options
+      SessionOptions.new(options)
     end
 
     def initialize
@@ -25,18 +33,18 @@ module Psych::E
     # allows a friendlier mount instruction interface
 
     def mount map=nil
-      return super() unless map
+      return super() unless map.is_a?(Hash)
       self.mount= map
     end
 
     def root
-      Pathname.new super
+      Pathname.new super()
     end
-    
-    def self.update_with local_options
-      defaults = instance.to_h.keep_if &allowed_keys
-      options = defaults.merge local_options
-      SessionOptions.new(options)
+
+
+    def reset
+      @table = DEFAULTS
+      true
     end
   end
 

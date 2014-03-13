@@ -5,8 +5,8 @@ module Psych::E
 
     attr_reader :key, :document
 
-    def initialize key, session, origin: nil, **options, &block
-      @key = key
+    def initialize session, origin: nil, options: {}, &block
+      @options = options
       @session = session
       @origin = origin
       super &block
@@ -14,8 +14,8 @@ module Psych::E
 
     def scalar value, anchor, tag, plain, quoted, style
       return super unless tag == "!ref"
-      Psych::E::Nodes::RemoteNode.new(value, @session, @origin)
+      s = Psych::E::Nodes::RemoteNode.new(value, @session, @options, @origin)
+      s.tap {|node| @last.children << node }
     end
-
   end
 end

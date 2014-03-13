@@ -7,9 +7,11 @@ describe 'resolution examples' do
     end
   end
 
+  # NOTE: reset configuration
+  after(:all) { Psych::E.reset }
+
   context "when no external reference is present" do
-    let(:some_standard_yml) {
-<<-YAML
+    let(:some_standard_yml) { <<YAML
 ---
 some:
   nice: map
@@ -20,17 +22,17 @@ some:
 YAML
     }
     let(:its_ruby_counterpart) {
-      {some: {nice: "map", and: [1, "ordinary", "sequence"]}}
+      {"some" => {"nice" => "map", "and" => [1, "ordinary", "sequence"]}}
     }
-    it "just should behave as Psych" do
+
+    it "just should behave as Psych::load" do
       expect(Psych::E.load some_standard_yml).to eq its_ruby_counterpart
     end
   end
 
   context "resolving referenced yaml and emitting ruby" do
     context "with references pointing the local file system" do
-      let(:some_yaml) {
-        <<-YAML
+      let(:some_yaml) { <<YAML
 ---
 foo:
   mar: giass
@@ -38,18 +40,19 @@ foo:
 YAML
       }
 
-      let(:resolved) {
+      let(:expected_resolved) {
         {"foo" => {
             "mar" => "giass",
             "bang" => {
               "bar" => "mega",
-              "cazz" => ["some", "nice", "nietzche"]}
+              "cazz" => ["some", "nice", "nietzsche"]}
           }
         }
       }
 
+      let(:resolved) { Psych::E.load(some_yaml) }
       example "load yaml string" do
-        expect(Psych::E.load(some_yaml)).to eq(resolved)
+        expect(resolved).to eq(expected_resolved)
       end
     end
 
@@ -61,7 +64,7 @@ foo:
   bang: !ref "first/second"
   mar: kant
 YAML
-      }    
+      }
       let(:resolved) {{
           "foo" => {
             "bang" => {
@@ -75,7 +78,7 @@ YAML
             },
             "mar" => "kant"
           }
-        
+
         }}
       example "load yaml string" do
         Psych::E.load(some_yaml).should eq(resolved)

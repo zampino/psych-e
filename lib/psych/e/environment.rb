@@ -8,18 +8,18 @@ module Psych::E
   class Environment
     extend Forwardable
 
-    attr_reader :uri, :local, :resolved_uri, :key, :parent
-    delegate :options => :@session, :fragment => :uri
-    
-    def initialize(location, session, body: nil, parent: nil)
-      @session = session
+    attr_reader :location, :uri, :local, :resolved_uri, :key, :parent
+    delegate :fragment => :uri
+
+    def initialize(location, options, body: nil, parent: nil)
+      @location = location
       @parent = parent
       @root = options.root
       @body = body
       @uri = URI.parse(location)
       @resolved_uri = resolve_uri
+      @local = resolve_local
       @key = keyfy
-      @local = resolve_local(location)
       @rack_handler = RackHandler.new(options)
     end
 
@@ -46,8 +46,8 @@ module Psych::E
       parent.resolved_uri + uri if parent && parent.resolved_uri
     end
 
-    def resolve_local(path)
-      path = Pathname.new path
+    def resolve_local
+      path = Pathname.new location
       return path if path.absolute?
       if parent
         resolve_path_name(parent.local, path)
@@ -65,7 +65,7 @@ module Psych::E
              then resolved_uri.path
              else local.to_s
              end
-      ["home", path.split("/")].flatten.join("_")
+      ["home", path.split("/")].flatten.reject(&:empty?).join("_")
     end
 
   end

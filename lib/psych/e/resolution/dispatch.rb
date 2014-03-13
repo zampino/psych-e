@@ -4,12 +4,11 @@ class Psych::E::Resolution
     include Traversable
     include Parser
 
-    finalizer :notify_session
-
     attr_reader :key, :fragment
 
-    def initialize(session, env)
+    def initialize(session, options, env)
       @session = session
+      @options = options
       @env = env
       @key = @env.key
       @fragment = @env.fragment
@@ -25,9 +24,9 @@ class Psych::E::Resolution
     end
 
     def _fetch_document
-      doc = parse.document
-      traverse(doc, fragment)
+      traverse(parse, fragment)
     ensure
+      notify_session
       terminate
     end
 

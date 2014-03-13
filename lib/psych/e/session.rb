@@ -7,18 +7,22 @@ module Psych::E
 
     delegate [:info, :debug, :warn, :error] => Celluloid::Logger
     attr_reader :options, :tasks
-    
-    def initialize(uri, options)
+
+    def initialize
       @options = options
       @tasks = Tasks.new_link(current_actor)
     end
-    
+
     def status(key)
       tasks.has_key?(key) ? :queued : :missing
     end
 
     def enqueued_tasks
       tasks.keys
+    end
+
+    def tasks_empty?
+      tasks.empty?
     end
 
     def task_done(key)
@@ -33,12 +37,12 @@ module Psych::E
     # blocking phase
     def on_tasks_completed
       debug "waiting for tasks to be completed"
-      wait :tasks_clean
+      wait :tasks_clean unless tasks.empty?
       info 'tasks clean!'
       yield
     ensure
-      tasks.terminate
-      terminate
+      tasks.terminate if tasks.alive?
+      terminate if current_actor.alive?
     end
 
     private
@@ -47,7 +51,7 @@ module Psych::E
       # circular deps detection in VERSION > 0.8.0
       false
     end
-    
+
     Event = Struct.new(:id, :data)
     CircularDependencies = Class.new(StandardError)
   end

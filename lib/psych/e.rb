@@ -25,13 +25,13 @@ module Psych
     end
 
     def self.resolve(uri=".", body: nil, **options)
-      Celluloid.start # Start the StarSystem
-      _options = Configuration.update_with(options)
-      session = Session.new(uri, _options)
-      resolution = Resolution.new(uri, session, body: body)
+      Celluloid.start # Start the ActorSystem
+      _options = Configuration.update_with options
+      session = Session.new
+      resolution = Resolution.new uri, session, body: body, options: _options
       home = resolution.fetch_home
       session.on_tasks_completed do
-        home.send _options[:emit]
+        home.send _options.emit
       end
     end
 
@@ -39,5 +39,8 @@ module Psych
       yield Configuration.instance
     end
 
+    def self.reset
+      Configuration.instance.reset
+    end
   end
 end

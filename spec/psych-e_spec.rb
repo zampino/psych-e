@@ -25,25 +25,25 @@ describe Psych::E do
   end
 
   describe "::resolve" do
-    let(:fake_session) {
-      fake_session = double()
-      allow(fake_session).to receive(:on_tasks_completed).and_yield fake_session
+    let(:fake_session) { double(:session) }
+    let(:fake_options) { OpenStruct.new(emit: :format) }
+    let(:fake_home) { double(:home) }
+    let(:fake_resolution) { double(:resolution, fetch_home: fake_home) }
+
+    before {
+      allow(fake_session).to receive(:on_tasks_completed).and_yield # fake_session
     }
 
-    let(:fake_home) { double("home") }
-    let(:fake_resolution) { double(fetch_home: fake_home) }
-    
     specify "meethod call chain" do
       expect(Psych::E::Configuration).to receive(:update_with).
-        with(some: "option").and_return({emit: :format})
-
-      expect(Psych::E::Supervisor).to receive(:new).
-        with("uri", {emit: :format}).and_return(fake_session)
-
+        with(some: "option").and_return fake_options
+      expect(Psych::E::Session).to receive(:new).
+        and_return(fake_session)
       expect(Psych::E::Resolution).to receive(:new).
-        with('uri', fake_session, body: 'body').and_return(fake_resolution)
-
+        with('uri', fake_session, body: 'body', options: fake_options).
+        and_return(fake_resolution)
       expect(fake_home).to receive(:format).and_return :result
+
       expect(subject.resolve("uri", body: "body", some: "option")).to equal :result
     end
   end
@@ -59,18 +59,6 @@ describe Psych::E do
       Psych::E.configure do |config|
         config.this :with_that
       end
-    end
-  end
-
-  describe "example of resolutions" do
-    before {
-      Psych::E.configure do |c|
-        c.root= FIXTURES_ROOT
-      end
-    }
-
-    example "of resolution" do
-      expect(subject.load_file("/mowgli/caz.yml")).to be_true
     end
   end
 end

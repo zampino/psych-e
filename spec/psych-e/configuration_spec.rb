@@ -44,7 +44,7 @@ describe Psych::E::SessionOptions do
         expect(session_options.emit).to be(:to_ruby)
         expect(session_options.root.to_s).to eq(Dir.getwd)
         expect(session_options.this_setting).to eq(nil)
-        expect(session_options.paranoid).to be_true
+        expect(session_options.paranoid).to be true
       end
     end
   end

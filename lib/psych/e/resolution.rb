@@ -9,10 +9,11 @@ module Psych::E
     include Parser
 
     attr_reader :key, :fragment
-    
-    def initialize(uri, session, body: nil, parent: nil)
+
+    def initialize uri, session, body: nil, options: {}, parent: nil
       @session = session
-      @env = Environment.new(uri, @session, body: body, parent: parent)
+      @options = options
+      @env = Environment.new(uri, options, body: body, parent: parent)
       @key = @env.key
       @fragment = @env.fragment
     end
@@ -21,7 +22,8 @@ module Psych::E
       if cached = Cache.get(key) # No need to spawn an actor
         return wrapped(traverse(cached, fragment))
       end
-      status = @session.status(key)
+      # status = @session.status(key)
+      status = :missing
       dispatch.send "fetch_#{status}_document"
     end
 
@@ -35,7 +37,8 @@ module Psych::E
     # fragments
 
     def dispatch
-      Celluloid::Actor[key] || Dispatch.supervise_as(key, @session, @env)[key]
+      # Celluloid::Actor[key] || # NOT SURE IT'S NEEDED
+      Dispatch.supervise_as(key, @session, @options, @env)[key]
     end
 
     # to uniform with Celluloid::Future#value
