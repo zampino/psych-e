@@ -1,4 +1,5 @@
 require 'sinatra'
+require 'yaml'
 
 class App < Sinatra::Application
   helpers do

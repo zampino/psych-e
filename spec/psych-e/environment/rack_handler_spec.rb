@@ -1,7 +1,7 @@
 require 'spec_helper'
-require File.expand_path("app.rb", SUPPORT_ROOT)
+require File.expand_path("app.rb", FIXTURES_ROOT)
 
-describe Psych::E::Environment::RackHandler, broken: true do
+describe Psych::E::Environment::RackHandler do
   context "handling hybrid Filesystem + rack yaml serving" do
 
     let(:options) { double(:fake_options,
@@ -11,7 +11,7 @@ describe Psych::E::Environment::RackHandler, broken: true do
 
     subject { Psych::E::Environment::RackHandler.new(options) }
 
-    it {should respond_to(:get)}
+    it { should respond_to(:get) }
 
     example "fetching file from filesystem " do
       expect(subject.get("first")).to be_an_instance_of(String)
@@ -20,7 +20,7 @@ describe Psych::E::Environment::RackHandler, broken: true do
     end
 
     example "fetching file through a custom rack app" do
-      expect(subject.get("some_path/for_yaml")).to eq("---\n:james:\n  :doesnt:\n    :like: Jaegermeister\n    :but: Averna a lot\n")
+      expect(subject.get("/some_path/for_yaml")).to eq("---\n:james:\n  :doesnt:\n    :like: Jaegermeister\n    :but: Averna a lot\n")
     end
 
   end
