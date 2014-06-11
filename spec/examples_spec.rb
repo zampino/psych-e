@@ -81,7 +81,7 @@ YAML
 
         }}
       example "load yaml string" do
-        Psych::E.load(some_yaml).should eq(resolved)
+        expect(Psych::E.load(some_yaml)).to eq(resolved)
       end
     end
   end

@@ -11,7 +11,7 @@ describe Psych::E::Environment::RackHandler do
 
     subject { Psych::E::Environment::RackHandler.new(options) }
 
-    it { should respond_to(:get) }
+    it { is_expected.to respond_to(:get) }
 
     example "fetching file from filesystem " do
       expect(subject.get("first")).to be_an_instance_of(String)

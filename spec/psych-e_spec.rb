@@ -1,10 +1,10 @@
 require 'spec_helper'
 
 describe Psych::E do
-  it { should respond_to :resolve }
-  it { should respond_to :configure }
-  it { should respond_to :load }
-  it { should respond_to :load_file }
+  it { is_expected.to respond_to :resolve }
+  it { is_expected.to respond_to :configure }
+  it { is_expected.to respond_to :load }
+  it { is_expected.to respond_to :load_file }
 
   describe "::load" do
     after { subject.load 'yaml', foo: "bar", ban: "zan" }

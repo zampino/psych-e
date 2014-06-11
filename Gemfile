@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
-ruby '2.1.1'
+ruby '2.1.2'
 
 # Specify your gem's dependencies in psych-e.gemspec
 gemspec
@@ -7,9 +7,9 @@ gemspec
 gem 'byebug', group: [:development, :test]
 
 group :test do
-  gem 'rspec', git: "https://github.com/rspec/rspec.git"
+  gem 'rspec'
   gem 'rspec-its'
   gem 'sinatra'
 end
 
-gem 'celluloid', git: "https://github.com/celluloid/celluloid.git"
+gem 'celluloid', github: "celluloid/celluloid"

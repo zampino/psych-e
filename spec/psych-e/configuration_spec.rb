@@ -9,7 +9,7 @@ describe Psych::E::Configuration do
   end
 
   describe "its (unique) instance" do
-    it { should respond_to :to_h }
+    it { is_expected.to respond_to :to_h }
     it "should embrace the singleton pattern" do
       expect(subject).to be(Psych::E::Configuration.instance)
     end
