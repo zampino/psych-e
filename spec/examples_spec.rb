@@ -61,25 +61,31 @@ YAML
         <<-YAML
 ---
 foo:
-  bang: !ref "first/second"
+  bang: !ref "/first/second"
   mar: kant
 YAML
       }
-      let(:resolved) {{
+      let(:resolved) {
+        {
           "foo" => {
             "bang" => {
               "what" => "a",
-              "beautiful" => ["day", "to", {
-                                "have" => {
+              "beautiful" => [
+                              "day",
+                              "to",
+                              {"have" =>
+                                {
                                   "a" => "swim",
                                   "with" => "you"
                                 }
-                              }]
+                              }
+                             ]
             },
             "mar" => "kant"
           }
+        }
+      }
 
-        }}
       example "load yaml string" do
         expect(Psych::E.load(some_yaml)).to eq(resolved)
       end

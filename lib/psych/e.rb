@@ -1,7 +1,10 @@
 require "psych/e/version"
 require "psych"
 # require "celluloid/autostart"
+
 require "celluloid"
+Celluloid.task_class = Celluloid::TaskThread
+
 require "forwardable"
 # require "active_support/core_ext/module/delegation"
 
