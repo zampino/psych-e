@@ -1,55 +1,61 @@
-require_relative 'session/tasks'
-
 module Psych::E
   class Session
     extend Forwardable
     include Celluloid
 
     delegate [:info, :debug, :warn, :error] => Celluloid::Logger
-    attr_reader :options, :tasks
 
-    def initialize
+    def initialize(**options)
       @options = options
-      @tasks = Tasks.new_link(current_actor)
-    end
-
-    def status(key)
-      tasks.has_key?(key) ? :queued : :missing
-    end
-
-    def enqueued_tasks
-      tasks.keys
-    end
-
-    def tasks_empty?
-      tasks.empty?
+      @event_loop_started = false
     end
 
     def task_done(key)
-      tasks.mailbox << Event.new(:done, key)
+      current_actor.mailbox << Event.new(:done, key)
     end
 
     def enqueue_task(key)
-      raise CircularDependencies if circular_dependencies?(key)
-      tasks.mailbox << Event.new(:add, key)
+      start_event_loop unless @event_loop_started
+      current_actor.mailbox << Event.new(:add, key)
     end
 
-    # blocking phase
     def on_tasks_completed
       debug "waiting for tasks to be completed"
-      wait :tasks_clean unless tasks.empty?
+      wait :tasks_clean if @event_loop_started
       info 'tasks clean!'
       yield
     ensure
-      tasks.terminate if tasks.alive?
       terminate if current_actor.alive?
     end
 
     private
 
-    def circular_dependencies?(key)
-      # circular deps detection in VERSION > 0.8.0
-      false
+    def start_event_loop
+      async(:event_loop, {})
+      @event_loop_started = true
+    end
+
+    def event_loop state
+      event = receive {|msg| msg.is_a?(Psych::E::Session::Event) }
+      state = send "react_on_#{event.id}_event", event.data, state
+      event_loop state
+    end
+
+    def react_on_add_event key, state
+      info "key added #{key}"
+      state.store(key, true)
+      state
+    end
+
+    def react_on_done_event key, state
+      info "key deleted #{key}"
+      state.delete(key)
+      check_tasks_empty state
+      state
+    end
+
+    def check_tasks_empty state
+      current_actor.signal(:tasks_clean) if state.empty?
     end
 
     Event = Struct.new(:id, :data)
