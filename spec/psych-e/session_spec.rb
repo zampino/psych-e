@@ -7,11 +7,13 @@ describe Psych::E::Session do
   let(:some_options) { {some: :option} }
   let(:an_instance) { Psych::E::Session.new } #(some_uri, some_options) }
   subject { an_instance }
-  let(:its_tasks) { an_instance.instance_variable_get "@tasks" }
 
-  describe "session tasks" do
-    subject { its_tasks }
-    it { is_expected.to be_an_instance_of(Psych::E::Session::Tasks) }
+  def its_state
+    an_instance.instance_variable_get "@state"
+  end
+
+  def its_tasks
+    its_state.keys
   end
 
   describe "#enqueue_task"
@@ -24,10 +26,10 @@ describe Psych::E::Session do
       it "should wait for all tasks to be completed before yielding the block" do
         subject.enqueue_task :one
         subject.enqueue_task :two
-        expect(its_tasks.keys).to eq([:one, :two])
+        expect(its_tasks).to eq([:one, :two])
         subject.async.complete_deferred(:two, :one, wait_time: 1)
         subject.on_tasks_completed do
-          expect(its_tasks.keys).to be_empty
+          expect(its_tasks).to be_empty
         end
       end
 
